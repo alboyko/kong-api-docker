@@ -1,0 +1,103 @@
+version: '3.7'
+
+services:
+  db:
+    container_name: postgres
+    build:
+      context: .
+      dockerfile: db/dockerfile-postgres
+#    image: postgres
+    environment:
+      - KONG_DB_CONF=${KONG_DB_NAME}:${KONG_DB_USERNAME}:${KONG_DB_PASSWORD},${KONGA_DB_NAME}:${KONGA_DB_USERNAME}:${KONGA_DB_PASSWORD}
+      - POSTGRES_USER=${POSTGRES_DB_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_DB_PASSWORD}
+    volumes:
+      - postgres:/data/postgres
+    ports:
+      - "5432:5432"
+    networks:
+      - postgres-net
+      - kong-net
+    restart: unless-stopped
+
+  pgadmin:
+    container_name: pgadmin
+    image: dpage/pgadmin4
+    depends_on:
+      - db
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-no-reply@noreply.org}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:-admin}
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+    volumes:
+      - pgadmin:/var/lib/pgadmin
+    ports:
+      - "${PGADMIN_PORT:-5050}:80"
+    networks:
+      - postgres-net
+      - kong-net
+    restart: unless-stopped
+
+  kong-migrations:
+    container_name: kong-migration
+    image: kong/kong-gateway:2.7-alpine
+    depends_on:
+      - db
+    entrypoint: sh -c "sleep 10 && kong migrations bootstrap -v"
+    environment:
+      KONG_DATABASE: ${KONG_DATABASE}
+      KONG_PG_HOST: ${KONG_DB_HOST}
+      KONG_PG_DATABASE: ${KONG_DB_NAME}
+      KONG_PG_USER: ${KONG_DB_USERNAME}
+      KONG_PG_PASSWORD: ${KONG_DB_PASSWORD}
+    networks:
+      - kong-net
+    restart: on-failure
+
+  kong:
+    container_name: kong
+    image: kong/kong-gateway:2.7-alpine
+    depends_on:
+      - kong-migrations
+    environment:
+      KONG_DATABASE: ${KONG_DATABASE}
+      KONG_PG_HOST: ${KONG_DB_HOST}
+      KONG_PG_DATABASE: ${KONG_DB_NAME}
+      KONG_PG_USER: ${KONG_DB_USERNAME}
+      KONG_PG_PASSWORD: ${KONG_DB_PASSWORD}
+      KONG_PROXY_ACCESS_LOG: ${KONG_PROXY_ACCESS_LOG}
+      KONG_ADMIN_ACCESS_LOG: ${KONG_ADMIN_ACCESS_LOG}
+      KONG_PROXY_ERROR_LOG: ${KONG_PROXY_ERROR_LOG}
+      KONG_ADMIN_ERROR_LOG: ${KONG_ADMIN_ERROR_LOG}
+# is not activated without license. see: https://github.com/Kong/kong/issues/7610
+      KONG_ENFORCE_RBAC: "on"
+      KONG_ADMIN_GUI_AUTH: basic-auth
+      KONG_ADMIN_GUI_SESSION_CONF: "{\"secret\":\"secret-string\"}"
+      #KONG_ADMIN_LISTEN: ${KONG_ADMIN_LISTEN}
+      curl -X POST http://localhost:8001/services/{SERVICE}/plugins \
+      --data "name=basic-auth"  \
+      --data "config.hide_credentials=true"
+      KONG_LICENSE_DATA: '{"license":{"signature":"LS0tLS1CRUdJTiBQR1AgTUVTU0FHRS0tLS0tClZlcnNpb246IEdudVBHIHYyCgpvd0did012TXdDSFdzMTVuUWw3dHhLK01wOTJTR0tLWVc3UU16WTBTVTVNc2toSVREWk1OTFEzVExJek1MY3dTCjA0ek1UVk1OREEwc2pRM04wOHpNalZKVHpOTE1EWk9TVTFLTXpRMVRVNHpTRXMzTjA0d056VXdUTytKWUdNUTQKR05oWW1VQ21NWEJ4Q3NDc3lMQmorTVBmOFhyWmZkNkNqVnJidmkyLzZ6THhzcitBclZtcFZWdnN1K1NiKzFhbgozcjNCeUxCZzdZOVdFL2FYQXJ0NG5lcmVpa2tZS1ozMlNlbGQvMm5iYkRzcmdlWFQzek1BQUE9PQo9b1VnSgotLS0tLUVORCBQR1AgTUVTU0FHRS0tLS0tCg=","payload":{"customer":"Test Company Inc","license_creation_date":"2017-11-08","product_subscription":"Kong Enterprise Edition","admin_seats":"5","support_plan":"None","license_expiration_date":"2017-11-10","license_key":"00141000017ODj3AAG_a1V41000004wT0OEAU"},"version":1}}'
+    ports:
+      - "8000:8000"
+      - "8443:8443"
+      - "8001:8001"
+      - "8444:8444"
+      - "8002:8002"
+      - "8445:8445"
+      - "8003:8003"
+      - "8004:8004"
+    networks:
+      - kong-net
+    restart: on-failure
+
+networks:
+  postgres-net:
+    driver: bridge
+  kong-net:
+    driver: bridge
+    external: true
+
+volumes:
+  postgres:
+  pgadmin:
