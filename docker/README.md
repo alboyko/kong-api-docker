@@ -11,7 +11,7 @@
 Docker Compose file
 ### Run
 ````
-docker network create kongnet
+docker network create kong-net
 docker-compose up -d --build
 ````
 ### Stop
