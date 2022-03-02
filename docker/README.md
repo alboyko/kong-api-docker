@@ -5,11 +5,15 @@ Before running set up KONG_LICENSE_DATA environment variable (see .env)
 localhost:5432 (postgres:password, ...)
 ## pgadmin
 localhost:6060 (postgres:password)
+
 to connect to PG server use {docker host IP}
 ## kong
 API exposed: localhost:8000
+
 admin API: localhost:8001 (RBAC token)
+
 admin UI: localhost:8002 (kong_admin:password)
+
 ## keycloak
 admin UI, admin API: localhost:7070 (admin:password)
 ## wiremock
@@ -44,6 +48,7 @@ curl -i http://localhost:6060/
 Custom Postgres dockerfile to be able to initialize DB by script (see **docker-entrypoint.sh**)
 ## db-init.sh
 SQL scripts to initialize DBs
+
 Allows combining DBs configuration in single line, for instance:
 ````
 environment:
