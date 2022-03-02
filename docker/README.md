@@ -1,10 +1,23 @@
-# Based on
-- [Setup (Kong + Konga) as API Gateway ](https://dev.to/vousmeevoyez/setup-kong-konga-part-2-dan)
-- [Using multiple databases with the official PostgreSQL Docker image](https://github.com/mrts/docker-postgresql-multiple-databases)
-- [Using Docker Compose to Launch a PostgreSQL Database](https://graspingtech.com/docker-compose-postgresql/)
-- [How to easily create a Postgres database in Docker](https://dev.to/andre347/how-to-easily-create-a-postgres-database-in-docker-4moj)
-- [Docker Compose + Postgres Docker Entry point init db.d init.sql Permission denied](https://www.onooks.com/docker-compose-postgres-docker-entrypoint-initdb-d-init-sql-permission-denied/)
-- [Set up a PostgreSQL server and pgAdmin with Docker](https://linuxhint.com/postgresql_docker/)
+# Overview
+Before running set up KONG_LICENSE_DATA environment variable (see .env)
+
+## postgres
+localhost:5432 (postgres:password, ...)
+## pgadmin
+localhost:6060 (postgres:password)
+to connect to PG server use {docker host IP}
+## kong
+API exposed: localhost:8000
+admin API: localhost:8001 (RBAC token)
+admin UI: localhost:8002 (kong_admin:password)
+## keycloak
+admin UI, admin API: localhost:7070 (admin:password)
+## wiremock
+http://{docker-host}:5050/{wiremock endpoint}
+## deck
+update DECK_HEADERS=kong-admin-token:... and rerun
+
+use {endpoint} in docker-compose.yaml to call command. by default "deck ping"
 
 # Description
 ## docker-compose.yml
@@ -25,17 +38,16 @@ curl -i http://localhost:8001/
 ````
 #### PgAdmin
 ````
-curl -i http://localhost:5050/
+curl -i http://localhost:6060/
 ````
 ## dockerfile-postgres
 Custom Postgres dockerfile to be able to initialize DB by script (see **docker-entrypoint.sh**)
-## docker-entrypoint.sh
-SQL scripts to initialize DB
+## db-init.sh
+SQL scripts to initialize DBs
 Allows combining DBs configuration in single line, for instance:
 ````
 environment:
-POSTGRES_USERS: username:password | username2:password
-POSTGRES_DATABASES: dbname:username | dbname2:username2
+DB_CONF: dbname:username:password | dbname2:username2:password2
 ````
 ## .env
 Environment variables definition
