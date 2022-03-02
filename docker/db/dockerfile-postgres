@@ -1,4 +1,4 @@
-FROM postgres:9.6
+FROM postgres
 
 COPY ./db/db-init.sh /docker-entrypoint-initdb.d/db-init.sh
 RUN chmod +x /docker-entrypoint-initdb.d/db-init.sh
@@ -6,4 +6,5 @@ RUN chmod +x /docker-entrypoint-initdb.d/db-init.sh
 EXPOSE 5432:5432
 
 CMD ["postgres"]
+
 
