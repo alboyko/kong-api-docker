@@ -1,0 +1,11 @@
+FROM kong/deck:latest
+
+CMD ["ping"]
+
+# rewrite to access KONG instance in docker network because of PROXY configuration
+# export NO_PROXY=kong,127.0.0.0/8
+# export no_proxy=kong,127.0.0.0/8
+# OR
+# export HTTP_PROXY="http://USERNAME:PASSWORD@[your.proxy.server]:[port]"
+# export HTTPS_PROXY="https://USERNAME:PASSWORD@[your.proxy.server]:[port]"
+
