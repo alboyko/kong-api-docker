@@ -1,0 +1,6 @@
+FROM rodolpheche/wiremock:latest
+
+COPY wiremock/stubs /home/wiremock
+
+EXPOSE 8080
+
