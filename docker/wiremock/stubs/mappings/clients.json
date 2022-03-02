@@ -1,3 +1,10 @@
 {
-  "clients": "data"
+  "request": {
+    "method": "GET",
+    "url": "/clients"
+  },
+  "response": {
+    "status": 200,
+    "bodyFileName": "clients-list-response.json"
+  }
 }
