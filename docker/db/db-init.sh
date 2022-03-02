@@ -16,10 +16,10 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" <<-EOSQL
 EOSQL
 }
 
-if [ -n "$KONG_DB_CONF" ]; then
-	echo "Multiple database creation requested: $KONG_DB_CONF"
-	for db in $(echo $KONG_DB_CONF | tr ',' ' '); do
-		create_user_and_database $db
+if [ -n "$DB_CONF" ]; then
+	echo "Multiple database creation requested: $DB_CONF"
+	for db in $(echo $DB_CONF | tr ',' ' '); do
+		create_user_and_database $db || continue
 	done
 	echo "Multiple databases created"
 fi
